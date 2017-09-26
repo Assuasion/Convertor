@@ -17,7 +17,7 @@ namespace Convertor
             }
 
             var filePath = args[0];
-            var hexaResult= ConvertFileToHexString(filePath, ",");
+            var hexaResult= ConvertFileToHexString(filePath, ", ");
             Clipboard.SetText(hexaResult);
             
             Console.Read();
@@ -29,12 +29,26 @@ namespace Convertor
             string[] stringArray = byteArray.Select(p => p.ToString("x2")).ToArray();
 
             var stringBuilder = new StringBuilder(stringArray.Length * 2);
+            var currentLenght = 6;
             foreach (var value in stringArray)
             {
-                stringBuilder.AppendFormat("{0}{1}", "0x", value);
-                stringBuilder.Append(delimiter);
+                if (currentLenght < 36)
+                {
+                    stringBuilder.AppendFormat("{0}{1}", "0x", value);
+                    stringBuilder.Append(delimiter);
+                    currentLenght += value.Length;
+                }
+                else
+                {
+                    stringBuilder.AppendFormat("{0}{1}", "0x", value);
+                    stringBuilder.Append(delimiter);
+                    stringBuilder.AppendLine();
+                    currentLenght = 6;
+                }
             }
-            return stringBuilder.ToString();
+            var result = stringBuilder.ToString().TrimEnd(new Char[] { ' ', ','});           
+            var prelucratedString = string.Format("{0}{1}{2}", "{", result, "}");
+            return prelucratedString;
         }
     }
 }
