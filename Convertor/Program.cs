@@ -19,8 +19,8 @@ namespace Convertor
             {
                 var delimiter = ", ";
                 var filePath = args[0];
-                var firstItemsNo = args.Length == 3 ? Convert.ToInt16(args[1]) : default(int);
-                var lasttItemsNo = args.Length == 3 ? Convert.ToInt16(args[2]) : default(int);
+                var firstItemsNo = args.Length == 3 ? Convert.ToInt32(args[1]) : default(int);
+                var lasttItemsNo = args.Length == 3 ? Convert.ToInt32(args[2]) : default(int);
                 
                 var hexaResult = ConvertFileToHexString(filePath, delimiter, firstItemsNo, lasttItemsNo);
                 Clipboard.SetText(hexaResult);
@@ -29,15 +29,13 @@ namespace Convertor
 
         public static string ConvertFileToHexString(string filePath, string delimiter, int firstItemsNo, int lasttItemsNo)
         {
-            byte[] byteArray;
+            IEnumerable<byte> byteArray = File.ReadAllBytes(filePath);
             if (firstItemsNo > 0 && lasttItemsNo > 0)
             {
-                var rightArray = File.ReadAllBytes(filePath).Take(firstItemsNo);
-                var leftArray = File.ReadAllBytes(filePath).Reverse().Take(lasttItemsNo).Reverse();
-                byteArray = rightArray.Concat(leftArray).ToArray();
+                var rightArray = byteArray.Take(firstItemsNo);
+                var leftArray = byteArray.Skip(byteArray.Count() - lasttItemsNo);
+                byteArray = rightArray.Concat(leftArray);
             }
-            else
-                byteArray = File.ReadAllBytes(filePath);
 
             var stringToList = byteArray.Select(p => string.Format("0x{0:X2}", p));
             var chunks = stringToList.ChunkBy(16);
