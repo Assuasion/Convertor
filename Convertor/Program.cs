@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace Convertor
@@ -10,45 +10,53 @@ namespace Convertor
     {
         [STAThread]
         static void Main(string[] args)
-        {
+        {                                    
             if (args.Length == 0)
             {
                 Console.WriteLine("Please enter the file path.");
             }
-
-            var filePath = args[0];
-            var hexaResult= ConvertFileToHexString(filePath, ", ");
-            Clipboard.SetText(hexaResult);
-            
-            Console.Read();
+            else
+            {
+                var delimiter = ", ";
+                var filePath = args[0];
+                var firstItemsNo = args.Length == 3 ? Convert.ToInt16(args[1]) : default(int);
+                var lasttItemsNo = args.Length == 3 ? Convert.ToInt16(args[2]) : default(int);
+                
+                var hexaResult = ConvertFileToHexString(filePath, delimiter, firstItemsNo, lasttItemsNo);
+                Clipboard.SetText(hexaResult);
+            }                     
         }
 
-        public static string ConvertFileToHexString(string filePath, string delimiter)
+        public static string ConvertFileToHexString(string filePath, string delimiter, int firstItemsNo, int lasttItemsNo)
         {
-            byte[] byteArray = File.ReadAllBytes(filePath);
-            string[] stringArray = byteArray.Select(p => p.ToString("x2")).ToArray();
-
-            var stringBuilder = new StringBuilder(stringArray.Length * 2);
-            var currentLenght = 6;
-            foreach (var value in stringArray)
+            byte[] byteArray;
+            if (firstItemsNo > 0 && lasttItemsNo > 0)
             {
-                if (currentLenght < 36)
-                {
-                    stringBuilder.AppendFormat("{0}{1}", "0x", value);
-                    stringBuilder.Append(delimiter);
-                    currentLenght += value.Length;
-                }
-                else
-                {
-                    stringBuilder.AppendFormat("{0}{1}", "0x", value);
-                    stringBuilder.Append(delimiter);
-                    stringBuilder.AppendLine();
-                    currentLenght = 6;
-                }
+                var rightArray = File.ReadAllBytes(filePath).Take(firstItemsNo);
+                var leftArray = File.ReadAllBytes(filePath).Reverse().Take(lasttItemsNo).Reverse();
+                byteArray = rightArray.Concat(leftArray).ToArray();
             }
-            var result = stringBuilder.ToString().TrimEnd(new Char[] { ' ', ','});           
-            var prelucratedString = string.Format("{0}{1}{2}", "{", result, "}");
-            return prelucratedString;
+            else
+                byteArray = File.ReadAllBytes(filePath);
+
+            var stringToList = byteArray.Select(p => string.Format("0x{0:X2}", p));
+            var chunks = stringToList.ChunkBy(16);
+            var lines = chunks.Select(chunk => string.Join(delimiter, chunk));
+            var singleLine = string.Join($",{Environment.NewLine}", lines.ToArray());
+
+            return $"{{{singleLine}}}";
+        }
+    }
+
+    public static class ListExtensions
+    {
+        public static List<List<T>> ChunkBy<T>(this IEnumerable<T> source, int chunkSize)
+        {
+            return source
+                .Select((x, i) => new { Index = i, Value = x })
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => x.Select(v => v.Value).ToList())
+                .ToList();
         }
     }
 }
