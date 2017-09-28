@@ -19,10 +19,10 @@ namespace Convertor
             {
                 var delimiter = ", ";
                 var filePath = args[0];
-                var firstItemsNo = args.Length == 3 ? Convert.ToInt32(args[1]) : default(int);
-                var lasttItemsNo = args.Length == 3 ? Convert.ToInt32(args[2]) : default(int);
+                var firstItemsNo = args.Length == 3 ? Convert.ToInt32(args[1]) : default(int); 
+                var lastItemsNo = args.Length == 3 ? Convert.ToInt32(args[2]) : default(int);
                 
-                var hexaResult = ConvertFileToHexString(filePath, delimiter, firstItemsNo, lasttItemsNo);
+                var hexaResult = ConvertFileToHexString(filePath, delimiter, firstItemsNo, lastItemsNo);
                 Clipboard.SetText(hexaResult);
             }                     
         }
