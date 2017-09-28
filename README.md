@@ -1,2 +1,2 @@
 # Convertor
-converts files to hexastrings and paste in clipboard
+Converts files to hexastrings and paste in clipboard.
